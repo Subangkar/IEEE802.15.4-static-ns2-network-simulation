@@ -1,27 +1,36 @@
+# $nNodes $nFlows $pcktRate $speed
+# ======================================
+# Variables
+# ======================================
+set num_node           [lindex $argv 0]
+set num_flow			[lindex $argv 1]
+set cbr_pckt_rate     [lindex $argv 2]
+set node_speed		  5;#[lindex $argv 3]
+# set Tx_multiple 	    [lindex $argv 3]
+set Tx_range 	    	[lindex $argv 3]
+set cbr_interval		[expr 1.0/$cbr_pckt_rate]
+# http://prog3.com/sbdm/blog/ysynhtt/article/details/37922773
+# puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate #TX_Range=$Tx_range"
+# ======================================
+
 
 # ==============================================================================
 # Network Parameters
 # ==============================================================================
 set cbr_size            64 ;	#[lindex $argv 2]; #4,8,16,32,64
 set cbr_rate            11.0Mb
-set grid_x_dim			500 ;	#[lindex $argv 1]
-set grid_y_dim          500 ;	#[lindex $argv 1]
-set time_duration       15 ;	#[lindex $argv 5] ;#50
+set grid_x_dim		[expr $Tx_range]
+# 500 ;	#[lindex $argv 1]
+set grid_y_dim  	[expr $Tx_range]
+#500 ;	#[lindex $argv 1]
+set time_duration    15 ;	#[lindex $argv 5] ;#50
 set start_time          1
 set extra_time          5
-set flow_start_gap      0.0
+set flow_start_gap   0.0
+puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate #TX_Area=$grid_x_dim x $grid_y_dim"
 # set motion_start_gap    0.05
 
-# ======================================
-# Variables
-# ======================================
-set num_node            [lindex $argv 0]
-set num_flow			[lindex $argv 0]
-set cbr_pckt_rate       [lindex $argv 0]
-set node_speed			[lindex $argv 0]
-# ======================================
 
-set cbr_interval		[expr 1.0/$cbr_pckt_rate]
 
 set source_type			Agent/UDP
 set sink_type			Agent/Null
@@ -39,6 +48,18 @@ set sink_type			Agent/Null
 # LINUX:	Agent/TCP/Linux				Agent/TCPSink
 
 # ==============================================================================
+
+
+
+# ==============================================================================
+# Files
+# ==============================================================================
+set trace_file_name		TRACE.tr
+set nam_file_name		NAM.nam
+set topo_file_name		TOPO.topo
+set directory			""
+# ==============================================================================
+
 
 
 
@@ -71,18 +92,6 @@ set val(initialenergy)	100;
 
 
 
-# ==============================================================================
-# Files
-# ==============================================================================
-set trace_file_name		TRACE.tr
-set nam_file_name		NAM.nam
-set topo_file_name		TOPO.topo
-set directory			""
-# ==============================================================================
-
-
-
-
 # ======================================================================
 # Initialization
 # ======================================================================
@@ -95,13 +104,22 @@ set tracefd     [open $directory$trace_file_name w]
 $ns_ trace-all $tracefd
 
 # setum nam (Network Animator) support by opening the nam file
-set namtrace    [open $directory$nam_file_name w]
-$ns_ namtrace-all-wireless $namtrace $grid_x_dim $grid_y_dim
+# set namtrace    [open $directory$nam_file_name w]
+# $ns_ namtrace-all-wireless $namtrace $grid_x_dim $grid_y_dim
 
 
 # create a topology object that keeps track of movements...
 # ...of mobilenodes within the topological boundary.
 set topo_file   [open $directory$topo_file_name "w"]
+
+
+
+
+# Mac/802_15_4 set syncFlag_ 1
+# Mac/802_15_4 set dataRate_ 11Mb
+# Mac/802_15_4 set dutyCycle_ cbr_interval
+
+
 
 # ========================================
 # EXCLUSIVE ENERGY PARAMETERS FOR 802.15.4
@@ -122,6 +140,10 @@ set dist(35m) 1.56962e-07
 set dist(40m) 1.20174e-07
 Phy/WirelessPhy set CSThresh_ $dist(40m)
 Phy/WirelessPhy set RXThresh_ $dist(40m)
+# Phy/WirelessPhy set TXThresh_ $dist(40m)
+# Phy/WirelessPhy/802_15_4 set CSThresh_ $dist(40m)
+# Phy/WirelessPhy/802_15_4 set RXThresh_ $dist(40m)
+# Phy/WirelessPhy/802_15_4 set TXThresh_ $dist(40m)
 # ========================================
 
 
@@ -182,6 +204,7 @@ $ns_ node-config	-adhocRouting $val(rp) \
 # Create Nodes and Set Initial Positions
 # ==============================================================================
 puts "start node creation"
+
 for {set i 0} {$i < $num_node} {incr i} {
 	set node_($i) [$ns_ node]
 	$node_($i) random-motion 0
@@ -211,6 +234,10 @@ for {set i 0} {$i < $val(nn)} { incr i } {
 	$ns_ initial_node_pos $node_($i) 35
     #35 = size of node in nam
 }
+
+
+
+
 
 # =====================
 # random node movements
@@ -280,6 +307,7 @@ for {set i 0} {$i < $num_flow } {incr i} {
 for {set i 0} {$i < $num_flow } {incr i} {
      $ns_ connect $udp_($i) $null_($i)
 }
+
 puts "flow creation complete"
 # ==============================================================================
 
@@ -295,14 +323,15 @@ for {set i 0} {$i < $val(nn) } {incr i} {
 $ns_ at [expr $start_time+$time_duration +$extra_time] "finish"
 $ns_ at [expr $start_time+$time_duration +$extra_time] "$ns_ nam-end-wireless [$ns_ now]; puts \"NS Exiting...\"; $ns_ halt"
 
+
 proc finish {} {
     puts "finishing"
     global ns_ tracefd namtrace topo_file nam_file_name
     $ns_ flush-trace
     close $tracefd
 	close $topo_file
-    close $namtrace
-    exec nam $nam_file_name &
+    # close $namtrace
+    # exec nam $nam_file_name &
     exit 0
 }
 

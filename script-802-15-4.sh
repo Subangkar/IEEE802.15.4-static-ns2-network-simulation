@@ -22,12 +22,14 @@ awkFile="awk-802-15-4.awk"
 nNodesInit=20
 nFlowsInit=10
 pcktRateInit=100
-speedInit=5
+# speedInit=5
+txRangeInit=500
 
 nNodes=$nNodesInit
 nFlows=$nFlowsInit
 pcktRate=$pcktRateInit
-speed=$speedInit
+# speed=$speedInit
+txRange=$txRangeInit
 
 iteration=$(printf %.0f $iteration_float);
 
@@ -42,7 +44,8 @@ echo 'Which parameter do you want to vary?'
 echo 'For # of nodes, please enter 1'
 echo 'For # of flows, please enter 2'
 echo 'For packet rate, please enter 3'
-echo 'For speed, please enter 4'
+# echo 'For speed, please enter 4'
+echo 'For area, please enter 4'
 read param
 
 echo 'Please enter the # of datasets'
@@ -68,7 +71,8 @@ do
 		#################START AN ITERATION
 		echo "                             EXECUTING $(($i+1)) th ITERATION"
 
-		ns $tclFile $nNodes $nFlows $pcktRate $speed
+		# ns $tclFile $nNodes $nFlows $pcktRate $speed
+		ns $tclFile $nNodes $nFlows $pcktRate $txRange
 		echo "SIMULATION COMPLETE. BUILDING STAT......"
 
 		awk -f $awkFile TRACE.tr > $tempFile
@@ -149,6 +153,7 @@ do
 	echo "# of flows:                   $nFlows " >> $output_file
 	echo "Packet size:                  $pcktRate " >> $output_file
 	echo "Speed:                        $speed " >> $output_file
+	echo "Tx area:                        $speed " >> $output_file
 
 
 	echo "" >> $output_file
@@ -187,8 +192,11 @@ do
 		echo -ne "$pcktRate " >> $graphData
 		pcktRate=$(($pcktRateInit*$round))
 	elif [ "$param" == "4" ]; then
-		echo -ne "$speed " >> $graphData
-		speed=$(($speedInit*$round))
+		echo -ne "$txRange " >> $graphData
+		speed=$(($txRangeInit*$round))
+	# elif [ "$param" == "4" ]; then
+	# 	echo -ne "$speed " >> $graphData
+	# 	speed=$(($speedInit*$round))
 	fi
 
 	echo "$thr $del $del_ratio $dr_ratio $t_energy $energy_byte" >> $graphData
@@ -203,7 +211,8 @@ elif [ "$param" == "2" ]; then
 elif [ "$param" == "3" ]; then
 	param="Packet Rate"
 elif [ "$param" == "4" ]; then
-	param="Speed ( meter/second )"
+	param="Area ( square-meter )"
+	# param="Speed ( meter/second )"
 fi
 
 arr[0]=""
