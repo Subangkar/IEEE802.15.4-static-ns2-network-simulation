@@ -1,0 +1,12 @@
+
+*.nam
+
+*.tmp
+
+*.tr
+
+*.topo
+
+*.out
+
+*.graph
