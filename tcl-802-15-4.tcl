@@ -5,7 +5,7 @@
 set num_node           [lindex $argv 0]
 set num_flow			[lindex $argv 1]
 set cbr_pckt_rate     [lindex $argv 2]
-set node_speed		  5;#[lindex $argv 3]
+# set node_speed		  0;#[lindex $argv 3]
 # set Tx_multiple 	    [lindex $argv 3]
 set Tx_range 	    	[lindex $argv 3]
 set cbr_interval		[expr 1.0/$cbr_pckt_rate]
@@ -17,8 +17,9 @@ set cbr_interval		[expr 1.0/$cbr_pckt_rate]
 # ==============================================================================
 # Network Parameters
 # ==============================================================================
-set cbr_size            64 ;	#[lindex $argv 2]; #4,8,16,32,64
-set cbr_rate            11.0Mb
+set cbr_type CBR
+set cbr_size            32;#64 ;	#[lindex $argv 2]; #4,8,16,32,64
+set cbr_rate            0.256Mb;#11.0Mb
 set grid_x_dim		[expr $Tx_range]
 # 500 ;	#[lindex $argv 1]
 set grid_y_dim  	[expr $Tx_range]
@@ -68,13 +69,13 @@ set directory			""
 # ==============================================================================
 set val(chan)		Channel/WirelessChannel  	;# channel type
 set val(prop)		Propagation/TwoRayGround 	;# radio-propagation model
-set val(ant)		Antenna/OmniAntenna      	;# Antenna type
-set val(ll)			LL                       	;# Link layer type
-set val(ifq)		Queue/DropTail/PriQueue  	;# Interface queue type
-set val(ifqlen)		100                       	;# max packet in ifq
 set val(netif)		Phy/WirelessPhy/802_15_4    ;# network interface type
 set val(mac)		Mac/802_15_4 			 	;# MAC type wireless 802.15.4
-set val(rp)			DSDV                     	;# ad-hoc routing protocol
+set val(ifq)		Queue/DropTail/PriQueue  	;# Interface queue type
+set val(ll)			LL                       	;# Link layer type
+set val(ant)		Antenna/OmniAntenna      	;# Antenna type
+set val(ifqlen)		100                       	;# max packet in ifq
+set val(rp)			AODV ;#DSDV                     	;# ad-hoc routing protocol
 set val(nn)			$num_node                	;# number of mobilenodes
 # ==============================================================================
 
@@ -104,7 +105,7 @@ set tracefd     [open $directory$trace_file_name w]
 $ns_ trace-all $tracefd
 
 # setum nam (Network Animator) support by opening the nam file
-# set namtrace    [open $directory$nam_file_name w]
+set namtrace    [open $directory$nam_file_name w]
 # $ns_ namtrace-all-wireless $namtrace $grid_x_dim $grid_y_dim
 
 
@@ -231,34 +232,13 @@ for {set i 0} {$i < $num_node} {incr i} {
 }
 
 for {set i 0} {$i < $val(nn)} { incr i } {
-	$ns_ initial_node_pos $node_($i) 35
-    #35 = size of node in nam
+	$ns_ initial_node_pos $node_($i) 4
+    #4 = size of node in nam
 }
 
 
 
 
-
-# =====================
-# random node movements
-# =====================
-for {set i 0} {$i < [expr $num_node] } {incr i} {
-	set dest_x [expr int($grid_x_dim*rand())]
-	set dest_y [expr int($grid_y_dim*rand())]
-
-	while {$dest_x == 0 ||
-			$dest_x == $grid_x_dim} {
-		set dest_x [expr int($grid_x_dim*rand())]
-	}
-
-	while {$dest_y == 0 ||
-			$dest_y == $grid_y_dim} {
-		set dest_y [expr int($grid_y_dim*rand())]
-	}
-	$ns_ at $start_time "$node_($i) setdest $dest_x $dest_y  $node_speed"
-
-	#puts "$i Destination ---> x: [$node_($i) set X_] y: [$node_($i) set Y_]"
-}
 
 puts "node creation complete"
 # ==============================================================================
@@ -296,6 +276,7 @@ for {set i 0} {$i < $num_flow} {incr i} {
 
 for {set i 0} {$i < $num_flow } {incr i} {
 	set cbr_($i) [new Application/Traffic/CBR]
+	$cbr_($i) set type_ $cbr_type
 	$cbr_($i) set packetSize_ $cbr_size
 	$cbr_($i) set rate_ $cbr_rate
 	$cbr_($i) set interval_ $cbr_interval
@@ -316,6 +297,8 @@ puts "flow creation complete"
 # Ending the simulation
 # ==============================================================================
 
+# Tell nodes when the simulation ends
+#
 for {set i 0} {$i < $val(nn) } {incr i} {
     $ns_ at [expr $start_time+$time_duration] "$node_($i) reset";
 }
