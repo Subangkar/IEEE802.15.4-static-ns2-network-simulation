@@ -10,6 +10,13 @@ set cbr_pckt_rate     [lindex $argv 2]
 set Tx_range 	    	[lindex $argv 3]
 set cbr_interval		[expr 1.0/$cbr_pckt_rate]
 # http://prog3.com/sbdm/blog/ysynhtt/article/details/37922773
+
+set num_col 5
+if {$num_node >= 50} {
+	set num_col [expr 2*$num_col]
+}
+set num_row [expr $num_node/$num_col]
+
 # puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate #TX_Range=$Tx_range"
 # ======================================
 
@@ -20,10 +27,8 @@ set cbr_interval		[expr 1.0/$cbr_pckt_rate]
 set cbr_type CBR
 set cbr_size            32;#64 ;	#[lindex $argv 2]; #4,8,16,32,64
 set cbr_rate            0.256Mb;#11.0Mb
-set grid_x_dim		[expr $Tx_range]
-# 500 ;	#[lindex $argv 1]
-set grid_y_dim  	[expr $Tx_range]
-#500 ;	#[lindex $argv 1]
+set grid_x_dim		[expr $Tx_range];# 500 ;	#[lindex $argv 1]
+set grid_y_dim  	[expr $Tx_range];#500 ;	#[lindex $argv 1]
 set time_duration    15 ;	#[lindex $argv 5] ;#50
 set start_time          1
 set extra_time          5
@@ -106,7 +111,8 @@ $ns_ trace-all $tracefd
 
 # setum nam (Network Animator) support by opening the nam file
 set namtrace    [open $directory$nam_file_name w]
-# $ns_ namtrace-all-wireless $namtrace $grid_x_dim $grid_y_dim
+# $ns_ namtrace-all $namtrace 
+$ns_ namtrace-all-wireless $namtrace $grid_x_dim $grid_y_dim
 
 
 # create a topology object that keeps track of movements...
@@ -205,31 +211,71 @@ $ns_ node-config	-adhocRouting $val(rp) \
 # Create Nodes and Set Initial Positions
 # ==============================================================================
 puts "start node creation"
-
 for {set i 0} {$i < $num_node} {incr i} {
 	set node_($i) [$ns_ node]
-	$node_($i) random-motion 0
-
-	# Provide initial (X,Y, for now Z=0) co-ordinates for mobilenodes
-	set x_pos [expr int($grid_x_dim*rand())] ; #random settings
-	set y_pos [expr int($grid_y_dim*rand())] ; #random settings
-
-	while {$x_pos == 0 ||
-			$x_pos == $grid_x_dim} {
-		set x_pos [expr int($grid_x_dim*rand())]
-	}
-
-	while {$y_pos == 0 ||
-			$y_pos == $grid_y_dim} {
-		set y_pos [expr int($grid_y_dim*rand())]
-	}
-
-	$node_($i) set X_ $x_pos;
-	$node_($i) set Y_ $y_pos;
-	$node_($i) set Z_ 0.0
-
-	puts -nonewline $topo_file "$i x: [$node_($i) set X_] y: [$node_($i) set Y_] \n"
+	# $node_($i) random-motion 0
 }
+
+
+# # Random Topology
+# for {set i 0} {$i < $num_node} {incr i} {
+# 	# set node_($i) [$ns_ node]
+# 	# $node_($i) random-motion 0
+
+# 	# Provide initial (X,Y, for now Z=0) co-ordinates for mobilenodes
+# 	set x_pos [expr int($grid_x_dim*rand())] ; #random settings
+# 	set y_pos [expr int($grid_y_dim*rand())] ; #random settings
+
+# 	while {$x_pos == 0 ||
+# 			$x_pos == $grid_x_dim} {
+# 		set x_pos [expr int($grid_x_dim*rand())]
+# 	}
+
+# 	while {$y_pos == 0 ||
+# 			$y_pos == $grid_y_dim} {
+# 		set y_pos [expr int($grid_y_dim*rand())]
+# 	}
+
+# 	$node_($i) set X_ $x_pos;
+# 	$node_($i) set Y_ $y_pos;
+# 	$node_($i) set Z_ 0.0
+
+# 	puts -nonewline $topo_file "$i x: [$node_($i) set X_] y: [$node_($i) set Y_] \n"
+# }
+
+
+
+
+# GRID Topology
+set dx [expr ($grid_x_dim/$num_col)]
+set dy [expr ($grid_y_dim/$num_row)]
+
+set x_start [expr $dx/2];
+set y_start [expr $dy/2];
+
+
+for {set i 0} {$i < $num_row} {incr i} {
+	#in same column
+    for {set j 0} {$j < $num_col } {incr j} {
+		#in same row
+		set m [expr ($i*$num_col)+$j];# n-th node
+		# if { [expr $m] == [expr $num_node] } {
+		# 	puts "$m $i $num_col $j"
+		# }
+
+		set y_pos [expr $y_start+($i*$dy)];#grid settings
+		set x_pos [expr $x_start+($j*$dx)];#grid settings
+
+		$node_($m) set X_ $x_pos;
+		$node_($m) set Y_ $y_pos;
+		$node_($m) set Z_ 0.0
+
+		puts -nonewline $topo_file "$m x: [$node_($m) set X_] y: [$node_($m) set Y_] \n"
+    }
+}; 
+
+
+
 
 for {set i 0} {$i < $val(nn)} { incr i } {
 	$ns_ initial_node_pos $node_($i) 4
@@ -247,29 +293,34 @@ puts "node creation complete"
 
 
 # ==============================================================================
-# Setup Traffic Flows
+# Traffic Flow Generation
 # ==============================================================================
+
+# create agent for each flow
 for {set i 0} {$i < $num_flow} {incr i} {
 	set udp_($i) [new $source_type]
 	set null_($i) [new $sink_type]
 	$udp_($i) set fid_ $i
-	$ns_ color $i Blue
-	if { [expr $i%2] == 0} {
-		$ns_ color $i Blue
-	} else {
+	# $ns_ color $i Blue
+	if { [expr int($i*rand())%2] == 0} {
 		$ns_ color $i Red
+	} else {
+		$ns_ color $i Blue
 	}
 }
 
 
+# assign agent to node
 for {set i 0} {$i < $num_flow} {incr i} {
 	set source_number [expr int($num_node*rand())]
 	set sink_number [expr int($num_node*rand())]
 	while {$sink_number==$source_number} {
 		set sink_number [expr int($num_node*rand())]
 	}
+
 	$ns_ attach-agent $node_($source_number) $udp_($i)
   	$ns_ attach-agent $node_($sink_number) $null_($i)
+	
 	puts -nonewline $topo_file "RANDOM:  Src: $source_number Dest: $sink_number\n"
 }
 
@@ -299,7 +350,7 @@ puts "flow creation complete"
 
 # Tell nodes when the simulation ends
 #
-for {set i 0} {$i < $val(nn) } {incr i} {
+for {set i 0} {$i < $num_node } {incr i} {
     $ns_ at [expr $start_time+$time_duration] "$node_($i) reset";
 }
 
@@ -314,7 +365,7 @@ proc finish {} {
     close $tracefd
 	close $topo_file
     # close $namtrace
-    # exec nam $nam_file_name &
+    exec nam $nam_file_name &
     exit 0
 }
 
