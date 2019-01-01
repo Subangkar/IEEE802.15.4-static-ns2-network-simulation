@@ -25,7 +25,7 @@ set num_row [expr $num_node/$num_col]
 # Network Parameters
 # ==============================================================================
 set cbr_type CBR
-set cbr_size            32;#64 ;	#[lindex $argv 2]; #4,8,16,32,64
+set cbr_size            64 ;	#[lindex $argv 2]; #4,8,16,32,64
 set cbr_rate            0.256Mb;#11.0Mb
 set grid_x_dim		[expr $Tx_range];# 500 ;	#[lindex $argv 1]
 set grid_y_dim  	[expr $Tx_range];#500 ;	#[lindex $argv 1]
@@ -217,62 +217,62 @@ for {set i 0} {$i < $num_node} {incr i} {
 }
 
 
-# # Random Topology
-# for {set i 0} {$i < $num_node} {incr i} {
-# 	# set node_($i) [$ns_ node]
-# 	# $node_($i) random-motion 0
+# Random Topology
+for {set i 0} {$i < $num_node} {incr i} {
+	# set node_($i) [$ns_ node]
+	# $node_($i) random-motion 0
 
-# 	# Provide initial (X,Y, for now Z=0) co-ordinates for mobilenodes
-# 	set x_pos [expr int($grid_x_dim*rand())] ; #random settings
-# 	set y_pos [expr int($grid_y_dim*rand())] ; #random settings
+	# Provide initial (X,Y, for now Z=0) co-ordinates for mobilenodes
+	set x_pos [expr int($grid_x_dim*rand())] ; #random settings
+	set y_pos [expr int($grid_y_dim*rand())] ; #random settings
 
-# 	while {$x_pos == 0 ||
-# 			$x_pos == $grid_x_dim} {
-# 		set x_pos [expr int($grid_x_dim*rand())]
-# 	}
+	while {$x_pos == 0 ||
+			$x_pos == $grid_x_dim} {
+		set x_pos [expr int($grid_x_dim*rand())]
+	}
 
-# 	while {$y_pos == 0 ||
-# 			$y_pos == $grid_y_dim} {
-# 		set y_pos [expr int($grid_y_dim*rand())]
-# 	}
+	while {$y_pos == 0 ||
+			$y_pos == $grid_y_dim} {
+		set y_pos [expr int($grid_y_dim*rand())]
+	}
 
-# 	$node_($i) set X_ $x_pos;
-# 	$node_($i) set Y_ $y_pos;
-# 	$node_($i) set Z_ 0.0
+	$node_($i) set X_ $x_pos;
+	$node_($i) set Y_ $y_pos;
+	$node_($i) set Z_ 0.0
 
-# 	puts -nonewline $topo_file "$i x: [$node_($i) set X_] y: [$node_($i) set Y_] \n"
-# }
+	puts -nonewline $topo_file "$i x: [$node_($i) set X_] y: [$node_($i) set Y_] \n"
+}
 
 
 
 
 # GRID Topology
-set dx [expr ($grid_x_dim/$num_col)]
-set dy [expr ($grid_y_dim/$num_row)]
+# set dx [expr ($grid_x_dim/$num_col)]
+# set dy [expr ($grid_y_dim/$num_row)]
 
-set x_start [expr $dx/2];
-set y_start [expr $dy/2];
+# set x_start [expr $dx/2];
+# set y_start [expr $dy/2];
 
 
-for {set i 0} {$i < $num_row} {incr i} {
-	#in same column
-    for {set j 0} {$j < $num_col } {incr j} {
-		#in same row
-		set m [expr ($i*$num_col)+$j];# n-th node
-		# if { [expr $m] == [expr $num_node] } {
-		# 	puts "$m $i $num_col $j"
-		# }
+# for {set i 0} {$i < $num_row} {incr i} {
+# 	#in same column
+#     for {set j 0} {$j < $num_col } {incr j} {
+# 		#in same row
+# 		set m [expr ($i*$num_col)+$j];# n-th node
+# 		# if { [expr $m] == [expr $num_node] } {
+# 		# 	puts "$m $i $num_col $j"
+# 		# }
 
-		set y_pos [expr $y_start+($i*$dy)];#grid settings
-		set x_pos [expr $x_start+($j*$dx)];#grid settings
+# 		set y_pos [expr $y_start+($i*$dy)];#grid settings
+# 		set x_pos [expr $x_start+($j*$dx)];#grid settings
 
-		$node_($m) set X_ $x_pos;
-		$node_($m) set Y_ $y_pos;
-		$node_($m) set Z_ 0.0
+# 		$node_($m) set X_ $x_pos;
+# 		$node_($m) set Y_ $y_pos;
+# 		$node_($m) set Z_ 0.0
 
-		puts -nonewline $topo_file "$m x: [$node_($m) set X_] y: [$node_($m) set Y_] \n"
-    }
-}; 
+# 		puts -nonewline $topo_file "$m x: [$node_($m) set X_] y: [$node_($m) set Y_] \n"
+#     }
+# }; 
 
 
 
@@ -302,7 +302,7 @@ for {set i 0} {$i < $num_flow} {incr i} {
 	set null_($i) [new $sink_type]
 	$udp_($i) set fid_ $i
 	# $ns_ color $i Blue
-	if { [expr int($i*rand())%2] == 0} {
+	if { [expr $i%2] == 0} {
 		$ns_ color $i Red
 	} else {
 		$ns_ color $i Blue
@@ -310,6 +310,7 @@ for {set i 0} {$i < $num_flow} {incr i} {
 }
 
 
+# ============================================ Random flow
 # assign agent to node
 for {set i 0} {$i < $num_flow} {incr i} {
 	set source_number [expr int($num_node*rand())]
@@ -325,6 +326,7 @@ for {set i 0} {$i < $num_flow} {incr i} {
 }
 
 
+# Creating packet generator (CBR) for source node
 for {set i 0} {$i < $num_flow } {incr i} {
 	set cbr_($i) [new Application/Traffic/CBR]
 	$cbr_($i) set type_ $cbr_type
@@ -332,6 +334,10 @@ for {set i 0} {$i < $num_flow } {incr i} {
 	$cbr_($i) set rate_ $cbr_rate
 	$cbr_($i) set interval_ $cbr_interval
 	$cbr_($i) attach-agent $udp_($i)
+}
+
+
+for {set i 0} {$i < $num_flow } {incr i} {
 	$ns_ at $start_time "$cbr_($i) start"
 }
 
@@ -339,6 +345,9 @@ for {set i 0} {$i < $num_flow } {incr i} {
 for {set i 0} {$i < $num_flow } {incr i} {
      $ns_ connect $udp_($i) $null_($i)
 }
+# =============================================================
+
+
 
 puts "flow creation complete"
 # ==============================================================================
@@ -365,7 +374,7 @@ proc finish {} {
     close $tracefd
 	close $topo_file
     # close $namtrace
-    exec nam $nam_file_name &
+    # exec nam $nam_file_name &
     exit 0
 }
 
