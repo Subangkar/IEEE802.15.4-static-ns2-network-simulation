@@ -100,42 +100,37 @@ set val(nn)			$num_node                	;# number of mobilenodes
 # ==============================================================================
 # Energy Parameters
 # ==============================================================================
-set val(energymodel)	EnergyModel;
-set val(initialenergy)	100;
-# ==============================================================================
+# set val(energymodel)	EnergyModel;
+# set val(initialenergy)	100;
 
+set val(energymodel_15_4)    EnergyModel ;
+set val(initialenergy_15_4)  1000            ;# Initial energy in Joules
 
+set val(idlepower_15_4) 56.4e-3		;#LEAP	(active power in spec)
+set val(rxpower_15_4) 59.1e-3			;#LEAP
+set val(txpower_15_4) 52.2e-3			;#LEAP
+set val(sleeppower_15_4) 0.6e-3		;#LEAP
+set val(transitionpower_15_4) 35.708e-3		;#LEAP: 
+set val(transitiontime_15_4) 2.4e-3		;#LEAP
 
+#set val(idlepower_15_4) 3e-3			;#telos	(active power in spec)
+#set val(rxpower_15_4) 38e-3			;#telos
+#set val(txpower_15_4) 35e-3			;#telos
+#set val(sleeppower_15_4) 15e-6			;#telos
+#set val(transitionpower_15_4) 1.8e-6		;#telos: volt = 1.8V; sleep current of MSP430 = 1 microA; so, 1.8 micro W
+#set val(transitiontime_15_4) 6e-6		;#telos
 
-
-
-# ==============================================================================
-# Initialization
-# ==============================================================================
-
-# creating an instance of the simulator
-set ns_    [new Simulator]
-
-# setup trace support by opening the trace file
-set tracefd     [open $directory$trace_file_name w]
-$ns_ trace-all $tracefd
-
-# setum nam (Network Animator) support by opening the nam file
-set namtrace    [open $directory$nam_file_name w]
-# $ns_ namtrace-all $namtrace 
-$ns_ namtrace-all-wireless $namtrace $grid_x_dim $grid_y_dim
-
-
-# create a topology object that keeps track of movements...
-# ...of mobilenodes within the topological boundary.
-set topo_file   [open $directory$topo_file_name "w"]
-
-
-
-
-# Mac/802_15_4 set syncFlag_ 1
+Mac/802_15_4 set syncFlag_ 1
+# Mac/802_15_4 set dataRate_ 0.250Mb
 # Mac/802_15_4 set dataRate_ 11Mb
-# Mac/802_15_4 set dutyCycle_ cbr_interval
+Mac/802_15_4 set dutyCycle_ cbr_interval
+
+
+
+# ==============================================================================
+
+
+
 
 
 
@@ -163,6 +158,32 @@ Phy/WirelessPhy set TXThresh_ $dist(40m)
 # Phy/WirelessPhy/802_15_4 set RXThresh_ $dist(40m)
 # Phy/WirelessPhy/802_15_4 set TXThresh_ $dist(40m)
 # ==============================================================================
+
+
+
+
+# ==============================================================================
+# Initialization
+# ==============================================================================
+
+# creating an instance of the simulator
+set ns_    [new Simulator]
+
+# setup trace support by opening the trace file
+set tracefd     [open $directory$trace_file_name w]
+$ns_ trace-all $tracefd
+
+# setum nam (Network Animator) support by opening the nam file
+set namtrace    [open $directory$nam_file_name w]
+# $ns_ namtrace-all $namtrace 
+$ns_ namtrace-all-wireless $namtrace $grid_x_dim $grid_y_dim
+
+
+# create a topology object that keeps track of movements...
+# ...of mobilenodes within the topological boundary.
+set topo_file   [open $directory$topo_file_name "w"]
+
+
 
 
 set topo	[new Topography]
@@ -207,12 +228,20 @@ $ns_ node-config	-adhocRouting $val(rp) \
 					-routerTrace OFF\
 	     			-macTrace ON \
 	     			-movementTrace OFF \
-             		-energyModel $val(energymodel) \
-             		-initialEnergy $val(initialenergy) \
-             		-rxPower 35.28e-3 \
-             		-txPower 31.32e-3 \
-	     			-idlePower 712e-6 \
-	     			-sleepPower 144e-9
+					-energyModel $val(energymodel_15_4) \
+					-initialEnergy $val(initialenergy_15_4) \
+					-rxPower $val(rxpower_15_4) \
+					-txPower $val(txpower_15_4) \
+			 		-idlePower $val(idlepower_15_4) \
+          			-sleepPower $val(sleeppower_15_4) \
+          			-transitionPower $val(transitionpower_15_4) \
+					-transitionTime $val(transitiontime_15_4)
+             		# -energyModel $val(energymodel) \
+             		# -initialEnergy $val(initialenergy) \
+             		# -rxPower 35.28e-3 \
+             		# -txPower 31.32e-3 \
+	     			# -idlePower 712e-6 \
+	     			# -sleepPower 144e-9
 # ==============================================================================
 
 

@@ -22,7 +22,8 @@ awkFile="awk-802-15-4.awk"
 nNodesInit=20
 nFlowsInit=10
 pcktRateInit=100
-txRangeInit=40
+txRangeInit=40;#40
+# 40x40 grid
 
 
 defFactor=2
