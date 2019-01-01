@@ -22,14 +22,20 @@ awkFile="awk-802-15-4.awk"
 nNodesInit=20
 nFlowsInit=10
 pcktRateInit=100
-# speedInit=5
-txRangeInit=500
+txRangeInit=40
 
-nNodes=$nNodesInit
-nFlows=$nFlowsInit
-pcktRate=$pcktRateInit
-# speed=$speedInit
-txRange=$txRangeInit
+
+defFactor=2
+
+(( nNodesDef =  $defFactor * $nNodesInit ))
+(( nFlowsDef =  $defFactor * $nFlowsInit ))
+(( pcktRateDef = $defFactor * $pcktRateInit ))
+(( txRangeDef = $defFactor * $txRangeInit ))
+
+nNodes=$nNodesDef
+nFlows=$nFlowsDef
+pcktRate=$pcktRateDef
+txRange=$txRangeDef
 
 iteration=$(printf %.0f $iteration_float);
 
@@ -193,7 +199,7 @@ do
 		pcktRate=$(($pcktRateInit*$round))
 	elif [ "$param" == "4" ]; then
 		echo -ne "$txRange " >> $graphData
-		speed=$(($txRangeInit*$round))
+		txRange=$(($txRangeInit*$round))
 	# elif [ "$param" == "4" ]; then
 	# 	echo -ne "$speed " >> $graphData
 	# 	speed=$(($speedInit*$round))

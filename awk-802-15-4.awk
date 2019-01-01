@@ -41,6 +41,9 @@ BEGIN {
 #	event = $1;    time = $2;    node = $3;    type = $4;    reason = $5;    node2 = $5;
 #	packetid = $6;    mac_sub_type=$7;    size=$8;    source = $11;    dest = $10;    energy=$14;
 #   r 1.021685760 _96_ MAC  --- 0 AODV 48 [0 ffffffff 3e 800] [energy 99.998760 ei 0.001 es 0.000 et 0.000 er 0.000] ------- [62:255 -1:255 29 0] [0x2 2 1 [54 0] [96 4]] (REQUEST)
+# 	r 7.449846293 _89_ AGT  --- 32109 cbr 84 [0 59 3e 800] [energy 99.969603 ei 0.005 es 0.000 et 0.001 er 0.025] ------- [9:0 89:0 28 89] [1284] 3 0
+#	[r].*_[1-9]+_ AGT
+# 	r [1-9]+\.[1-9]+ _[1-9]+_ AGT
 
 	strEvent = $1 ;			rTime = $2 ;
 	node = $3 ;
@@ -134,7 +137,8 @@ END {
 
 
 
-	printf( "%15.2f\n%15.5f\n%15.2f\n%15.2f\n%15.2f\n%10.2f\n%10.2f\n%10.5f\n", rThroughput, rAverageDelay, nSentPackets, nReceivedPackets, nDropPackets, rPacketDeliveryRatio, rPacketDropRatio,rTime) ;
+	printf( "%15.2f\n%15.5f\n%15.2f\n%15.2f\n%15.2f\n%10.2f\n%10.2f\n%10.5f\n \n", rThroughput, rAverageDelay, nSentPackets, nReceivedPackets, nDropPackets, rPacketDeliveryRatio, rPacketDropRatio,rTime) ;
+	# print "\n"
 	printf("%15.5f\n%15.5f\n%15.5f\n%15.5f\n%15.0f\n%15.9f\n", total_energy_consumption, avg_energy_per_bit, avg_energy_per_byte, avg_energy_per_packet, total_retransmit, rEnergyEfficeincy);
 
 #	printf( "Throughput: %15.2f AverageDelay: %15.5f \nSent Packets: %15.2f Received Packets: %15.2f Dropped Packets: %15.2f \nPacketDeliveryRatio: %10.2f PacketDropRatio: %10.2f\nTotal time: %10.5f\n", rThroughput, rAverageDelay, nSentPackets, nReceivedPackets, nDropPackets, rPacketDeliveryRatio, rPacketDropRatio,rTime) ;
