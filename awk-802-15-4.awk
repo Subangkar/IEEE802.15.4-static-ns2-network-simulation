@@ -86,8 +86,8 @@ BEGIN {
 		if ( strEvent == "r" && idPacket >= idLowestPacket) {
 			# printVar="recv:";
 			nReceivedPackets += 1 ;		
-			nReceivedBytes += nBytes;################
-			# nReceivedBytes += (nBytes-header);################
+			# nReceivedBytes += nBytes;################
+			nReceivedBytes += (nBytes-header);################
 			rReceivedTime[ idPacket ] = rTime ;
 			rDelay[idPacket] = rReceivedTime[ idPacket] - rSentTime[ idPacket ];
 			rTotalDelay += rDelay[idPacket];

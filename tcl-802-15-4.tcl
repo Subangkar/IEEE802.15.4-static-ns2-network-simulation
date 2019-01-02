@@ -9,7 +9,7 @@ set Tx_range 	    	[lindex $argv 3]
 set cbr_interval		[expr 1.0/$cbr_pckt_rate]
 # http://prog3.com/sbdm/blog/ysynhtt/article/details/37922773
 
-set num_col 10
+set num_col 5
 if {$num_node >= 50} {
 	set num_col [expr 2*$num_col]
 	puts "$num_col"
@@ -34,16 +34,21 @@ set extra_time          5
 set flow_start_gap   0.1
 set parallel_start_gap 0.1
 set cross_start_gap 0.0
+set random_start_gap 0.2
 
-set num_parallel_flow [expr $num_col];# along column
+set num_parallel_flow [expr ($num_row*$num_col)];# along column
+# set num_parallel_flow [expr (int($num_row/2))*$num_col];# along column
 if {$num_parallel_flow > $num_flow} {
 	set num_parallel_flow $num_flow
 }
 set num_cross_flow [expr $num_flow-$num_parallel_flow] ;#along row
 set num_random_flow 0
-if {$num_cross_flow > $num_row} {
-	set num_random_flow  [expr $num_cross_flow-$num_row]
-	set num_cross_flow $num_row
+if {$num_cross_flow > [expr (int($num_col/2))*$num_row]} {
+	# puts $num_cross_flow
+	set num_random_flow  [expr $num_cross_flow - (int($num_col/2))*$num_row]
+	# set num_random_flow  [expr $num_cross_flow-$num_row]
+	# set num_cross_flow $num_row
+	set num_cross_flow [expr (int($num_col/2))*$num_row]
 }
 
 
@@ -184,13 +189,37 @@ proc create_CBR_App { } {
 # 1st row -> (last-1) row
 proc paralell_Node_No {i} {
 	global num_row num_col
+
 	set curRow [expr int($i/$num_col)]
 	# puts $curRow
 	return [expr ($i%$num_col)+(($num_row-1-$curRow)*$num_col)]
 }
 
-# set v 3
-# set v [paralell_Node_No $v]
+
+proc getNodeNoForCross {i} {
+	global num_row num_col
+
+	set nodeRow [expr ($i/(int($num_col/2)))]
+	set curColm [expr int($i%($num_col/2))]
+	# puts $nodeRow
+	# puts $curColm
+	set i [expr $curColm+($nodeRow*$num_col)]
+	return $i	
+}
+
+# 0->4 1->3 5->9
+# 0th row -> last row
+# 1st row -> (last-1) row
+proc cross_Node_No {i} {
+	global num_row num_col
+
+	set nodeRow [expr ($i/(int($num_col)))]
+	set curColm [expr int($i%$num_col)]
+	return [expr (($nodeRow+1)*$num_col-1)-$curColm]
+}
+
+set v 5
+set v [cross_Node_No $v]
 # puts $v
 # ==============================================================================
 
@@ -344,7 +373,8 @@ set k 0
 #CHNG
 for {set i 0} {$i < $num_parallel_flow } {incr i} {
 	set udp_node $i
-	set null_node [expr $i+(($num_col)*($num_row-1))];#CHNG
+	set null_node [paralell_Node_No $i];#CHNG
+	# set null_node [expr $i+(($num_col)*($num_row-1))];#CHNG
 	$ns_ attach-agent $node_($udp_node) $udp_($k)
   	$ns_ attach-agent $node_($null_node) $null_($k)
 	puts -nonewline $topo_file "PARALLEL: Src: $udp_node Dest: $null_node\n"
@@ -383,8 +413,9 @@ puts "Cros flow: $num_cross_flow"
 set k $num_parallel_flow
 #CHNG
 for {set i 0} {$i < $num_cross_flow } {incr i} {
-	set udp_node [expr $i*$num_col];#CHNG
-	set null_node [expr ($i+1)*$num_col-1];#CHNG
+	set udp_node [getNodeNoForCross $i];#CHNG
+	set null_node [cross_Node_No $udp_node];#CHNG
+	# set null_node [expr ($i+1)*$num_col-1];#CHNG
 	$ns_ attach-agent $node_($udp_node) $udp_($k)
   	$ns_ attach-agent $node_($null_node) $null_($k)
 	puts -nonewline $topo_file "CROSS: Src: $udp_node Dest: $null_node\n"
@@ -467,7 +498,7 @@ for {set i 0} {$i < $num_random_flow } {incr i} {
 #   	$ns_ attach-agent $node_($null_node) $null_($rt)
 # 	puts -nonewline $topofile "RANDOM:  Src: $udp_node Dest: $null_node\n"
 # 	incr rt
-# } 
+# }
 
 # set rt $r
 # for {set i 1} {$i < [expr $num_random_flow+1]} {incr i} {
@@ -482,7 +513,7 @@ for {set i 0} {$i < $num_random_flow } {incr i} {
 # 	$cbr_($rt) set interval_ $cbr_interval
 # 	$cbr_($rt) attach-agent $udp_($rt)
 # 	incr rt
-# } 
+# }
 
 # set rt $r
 # for {set i 1} {$i < [expr $num_random_flow+1]} {incr i} {
