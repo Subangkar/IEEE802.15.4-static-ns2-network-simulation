@@ -24,18 +24,21 @@ set num_row [expr $num_node/$num_col]
 # Network Parameters
 # ==============================================================================
 set cbr_type CBR
-set cbr_size            64 ;	#[lindex $argv 2]; #4,8,16,32,64
+set cbr_size            16 ;	#[lindex $argv 2]; #4,8,16,32,64
 set cbr_rate            0.256Mb;#11.0Mb
 set grid_x_dim		[expr $Tx_range];# 500 ;	#[lindex $argv 1]
 set grid_y_dim  	[expr $Tx_range];#500 ;	#[lindex $argv 1]
-set time_duration    15 ;	#[lindex $argv 5] ;#50
+set time_duration    25 ;	#[lindex $argv 5] ;#50
 set start_time          1
 set extra_time          5
-set flow_start_gap   0.0
-set parallel_start_gap 0.0
+set flow_start_gap   0.1
+set parallel_start_gap 0.1
 set cross_start_gap 0.0
 
 set num_parallel_flow [expr $num_col];# along column
+if {$num_parallel_flow > $num_flow} {
+	set num_parallel_flow $num_flow
+}
 set num_cross_flow [expr $num_flow-$num_parallel_flow] ;#along row
 set num_random_flow 0
 if {$num_cross_flow > $num_row} {
@@ -110,7 +113,7 @@ set val(idlepower_15_4) 56.4e-3		;#LEAP	(active power in spec)
 set val(rxpower_15_4) 59.1e-3			;#LEAP
 set val(txpower_15_4) 52.2e-3			;#LEAP
 set val(sleeppower_15_4) 0.6e-3		;#LEAP
-set val(transitionpower_15_4) 35.708e-3		;#LEAP: 
+set val(transitionpower_15_4) 35.708e-3		;#LEAP:
 set val(transitiontime_15_4) 2.4e-3		;#LEAP
 
 #set val(idlepower_15_4) 3e-3			;#telos	(active power in spec)
@@ -121,7 +124,7 @@ set val(transitiontime_15_4) 2.4e-3		;#LEAP
 #set val(transitiontime_15_4) 6e-6		;#telos
 
 Mac/802_15_4 set syncFlag_ 1
-# Mac/802_15_4 set dataRate_ 0.250Mb
+Mac/802_15_4 set dataRate_ 0.250Mb
 # Mac/802_15_4 set dataRate_ 11Mb
 Mac/802_15_4 set dutyCycle_ cbr_interval
 
@@ -153,13 +156,43 @@ set dist(35m) 1.56962e-07
 set dist(40m) 1.20174e-07
 Phy/WirelessPhy set CSThresh_ $dist(40m)
 Phy/WirelessPhy set RXThresh_ $dist(40m)
-Phy/WirelessPhy set TXThresh_ $dist(40m)
+# Phy/WirelessPhy set TXThresh_ $dist(40m)
 # Phy/WirelessPhy/802_15_4 set CSThresh_ $dist(40m)
 # Phy/WirelessPhy/802_15_4 set RXThresh_ $dist(40m)
 # Phy/WirelessPhy/802_15_4 set TXThresh_ $dist(40m)
 # ==============================================================================
 
 
+# ==============================================================================
+# Functions
+# ==============================================================================
+
+proc create_CBR_App { } {
+	global cbr_type cbr_size cbr_rate cbr_interval
+
+	set cbr_ [new Application/Traffic/CBR]
+	$cbr_ set type_ $cbr_type
+	$cbr_ set packetSize_ $cbr_size
+	$cbr_ set rate_ $cbr_rate
+	$cbr_ set interval_ $cbr_interval
+	# $cbr_ attach-agent $udp_($k)
+	return $cbr_
+}
+
+# 0->15 1->16
+# 0th row -> last row
+# 1st row -> (last-1) row
+proc paralell_Node_No {i} {
+	global num_row num_col
+	set curRow [expr int($i/$num_col)]
+	# puts $curRow
+	return [expr ($i%$num_col)+(($num_row-1-$curRow)*$num_col)]
+}
+
+# set v 3
+# set v [paralell_Node_No $v]
+# puts $v
+# ==============================================================================
 
 
 # ==============================================================================
@@ -188,24 +221,9 @@ set topo_file   [open $directory$topo_file_name "w"]
 
 set topo	[new Topography]
 $topo load_flatgrid $grid_x_dim $grid_y_dim
-# Grid resolution can be passed to load_flatgrid as a 3rd parameter.
-# Default is 1.
 
 # create the object God
 create-god $val(nn)
-
-# GOD (General Operations Director) is the object that is used to...
-# ...store global information about the state of the environment, network...
-# ...or nodes that an omniscent observer would have, but that should...
-# ...not be made known to any participant in the simulation.
-# Currently, God object stores the total number of mobilenodes...
-# ...and a table of shortest number of hops required to reach from...
-# ...one node to another. The next hop information is normally loaded...
-# ...into god object from movement pattern files, before simulation...
-# ...begins, since calculating this on the fly during simulation runs...
-# ...can be quite time consuming.
-# ...However, in order to keep this example simple we avoid using movement...
-# ...pattern files and thus do not provide God with next hop information.
 
 # ==============================================================================
 
@@ -270,9 +288,6 @@ for {set i 0} {$i < $num_row} {incr i} {
     for {set j 0} {$j < $num_col } {incr j} {
 		#in same row
 		set m [expr ($i*$num_col)+$j];# n-th node
-		# if { [expr $m] == [expr $num_node] } {
-		# 	puts "$m $i $num_col $j"
-		# }
 
 		set y_pos [expr $y_start+($i*$dy)];#grid settings
 		set x_pos [expr $x_start+($j*$dx)];#grid settings
@@ -322,40 +337,50 @@ for {set i 0} {$i < $num_flow} {incr i} {
 
 set flowNum 0
 # # ======================= PARALLEL FLOW =======================
+# along column
+# set num_parallel_flow 0
 puts "Parallel flow: $num_parallel_flow"
-
+set k 0
 #CHNG
 for {set i 0} {$i < $num_parallel_flow } {incr i} {
 	set udp_node $i
 	set null_node [expr $i+(($num_col)*($num_row-1))];#CHNG
-	$ns_ attach-agent $node_($udp_node) $udp_($i)
-  	$ns_ attach-agent $node_($null_node) $null_($i)
+	$ns_ attach-agent $node_($udp_node) $udp_($k)
+  	$ns_ attach-agent $node_($null_node) $null_($k)
 	puts -nonewline $topo_file "PARALLEL: Src: $udp_node Dest: $null_node\n"
-} 
-
-#CHNG
-for {set i 0} {$i < $num_parallel_flow } {incr i} {
-     $ns_ connect $udp_($i) $null_($i)
+	incr k
 }
-#CHNG
-for {set i 0} {$i < $num_parallel_flow } {incr i} {
-	set cbr_($i) [new Application/Traffic/CBR]
-	$cbr_($i) set type_ $cbr_type
-	$cbr_($i) set packetSize_ $cbr_size
-	$cbr_($i) set rate_ $cbr_rate
-	$cbr_($i) set interval_ $cbr_interval
-	$cbr_($i) attach-agent $udp_($i)
-} 
 
+set k 0
 #CHNG
 for {set i 0} {$i < $num_parallel_flow } {incr i} {
-     $ns_ at [expr $start_time+$i*$parallel_start_gap] "$cbr_($i) start"
+     $ns_ connect $udp_($k) $null_($k)
+	 incr k
 }
+
+set k 0
+#CHNG
+for {set i 0} {$i < $num_parallel_flow } {incr i} {
+	set cbr_($k) [create_CBR_App]
+	$cbr_($k) attach-agent $udp_($k)
+	incr k
+}
+
+
+set k 0
+#CHNG
+for {set i 0} {$i < $num_parallel_flow } {incr i} {
+     $ns_ at [expr $start_time+$i*$parallel_start_gap] "$cbr_($k) start"
+	 incr k
+}
+
 ####################################CROSS FLOW
+# along row 1st -> last
+# set num_cross_flow 0
 puts "Cros flow: $num_cross_flow"
 
 #CHNG
-set k $num_parallel_flow 
+set k $num_parallel_flow
 #CHNG
 for {set i 0} {$i < $num_cross_flow } {incr i} {
 	set udp_node [expr $i*$num_col];#CHNG
@@ -377,13 +402,10 @@ for {set i 0} {$i < $num_cross_flow } {incr i} {
 set k $num_parallel_flow
 #CHNG
 for {set i 0} {$i < $num_cross_flow } {incr i} {
-	set cbr_($k) [new Application/Traffic/CBR]
-	$cbr_($k) set packetSize_ $cbr_size
-	$cbr_($k) set rate_ $cbr_rate
-	$cbr_($k) set interval_ $cbr_interval
+	set cbr_($k) [create_CBR_App]
 	$cbr_($k) attach-agent $udp_($k)
 	incr k
-} 
+}
 
 #CHNG
 set k $num_parallel_flow
@@ -394,8 +416,8 @@ for {set i 0} {$i < $num_cross_flow } {incr i} {
 }
 
 # ======================= Random flow =========================
+set num_random_flow 0
 puts "Random flow: $num_random_flow"
-
 # assign agent to node
 for {set i 0} {$i < $num_random_flow} {incr i} {
 	set source_number [expr int($num_node*rand())]
@@ -406,18 +428,14 @@ for {set i 0} {$i < $num_random_flow} {incr i} {
 
 	$ns_ attach-agent $node_($source_number) $udp_($i)
   	$ns_ attach-agent $node_($sink_number) $null_($i)
-	
+
 	puts -nonewline $topo_file "RANDOM:  Src: $source_number Dest: $sink_number\n"
 }
 
 
 # Creating packet generator (CBR) for source node
 for {set i 0} {$i < $num_random_flow } {incr i} {
-	set cbr_($i) [new Application/Traffic/CBR]
-	$cbr_($i) set type_ $cbr_type
-	$cbr_($i) set packetSize_ $cbr_size
-	$cbr_($i) set rate_ $cbr_rate
-	$cbr_($i) set interval_ $cbr_interval
+	set cbr_($i) [create_CBR_App]
 	$cbr_($i) attach-agent $udp_($i)
 }
 
