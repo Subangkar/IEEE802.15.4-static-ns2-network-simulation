@@ -37,12 +37,14 @@ set cross_start_gap 0.0
 set random_start_gap 0.2
 
 set num_parallel_flow [expr ($num_row*$num_col)];# along column
+set num_parallel_flow 0;# along column
 # set num_parallel_flow [expr (int($num_row/2))*$num_col];# along column
-if {$num_parallel_flow > $num_flow} {
-	set num_parallel_flow $num_flow
+if {$num_parallel_flow > [expr $num_flow/2]} {
+	set num_parallel_flow [expr $num_flow/2]
 }
 set num_cross_flow [expr $num_flow-$num_parallel_flow] ;#along row
-set num_random_flow 0
+set num_cross_flow 0;#along row
+# set num_random_flow 0
 if {$num_cross_flow > [expr (int($num_col/2))*$num_row]} {
 	# puts $num_cross_flow
 	set num_random_flow  [expr $num_cross_flow - (int($num_col/2))*$num_row]
@@ -50,6 +52,7 @@ if {$num_cross_flow > [expr (int($num_col/2))*$num_row]} {
 	# set num_cross_flow $num_row
 	set num_cross_flow [expr (int($num_col/2))*$num_row]
 }
+set num_random_flow $num_flow
 
 
 puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate #TX_Area=$grid_x_dim x $grid_y_dim"
@@ -447,8 +450,10 @@ for {set i 0} {$i < $num_cross_flow } {incr i} {
 }
 
 # ======================= Random flow =========================
-set num_random_flow 0
+# set num_random_flow 0
 puts "Random flow: $num_random_flow"
+
+set k [expr $num_parallel_flow+$num_cross_flow]
 # assign agent to node
 for {set i 0} {$i < $num_random_flow} {incr i} {
 	set source_number [expr int($num_node*rand())]
@@ -457,27 +462,34 @@ for {set i 0} {$i < $num_random_flow} {incr i} {
 		set sink_number [expr int($num_node*rand())]
 	}
 
-	$ns_ attach-agent $node_($source_number) $udp_($i)
-  	$ns_ attach-agent $node_($sink_number) $null_($i)
+	$ns_ attach-agent $node_($source_number) $udp_($k)
+  	$ns_ attach-agent $node_($sink_number) $null_($k)
 
 	puts -nonewline $topo_file "RANDOM:  Src: $source_number Dest: $sink_number\n"
+	incr k
 }
 
 
+set k [expr $num_parallel_flow+$num_cross_flow]
 # Creating packet generator (CBR) for source node
 for {set i 0} {$i < $num_random_flow } {incr i} {
 	set cbr_($i) [create_CBR_App]
-	$cbr_($i) attach-agent $udp_($i)
+	$cbr_($i) attach-agent $udp_($k)
+	incr k
 }
 
 
+set k [expr $num_parallel_flow+$num_cross_flow]
 for {set i 0} {$i < $num_random_flow } {incr i} {
-	$ns_ at $start_time "$cbr_($i) start"
+	$ns_ at $start_time "$cbr_($k) start"
+	incr k
 }
 
+set k [expr $num_parallel_flow+$num_cross_flow]
 # Connecting udp_node & null_node
 for {set i 0} {$i < $num_random_flow } {incr i} {
-     $ns_ connect $udp_($i) $null_($i)
+     $ns_ connect $udp_($k) $null_($k)
+	incr k
 }
 # =============================================================
 
