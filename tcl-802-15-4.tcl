@@ -37,14 +37,14 @@ set cross_start_gap 0.0
 set random_start_gap 0.2
 
 set num_parallel_flow [expr ($num_row*$num_col)];# along column
-set num_parallel_flow 0;# along column
+# set num_parallel_flow 0;# along column
 # set num_parallel_flow [expr (int($num_row/2))*$num_col];# along column
 if {$num_parallel_flow > [expr $num_flow/2]} {
 	set num_parallel_flow [expr $num_flow/2]
 }
 set num_cross_flow [expr $num_flow-$num_parallel_flow] ;#along row
-set num_cross_flow 0;#along row
-# set num_random_flow 0
+# set num_cross_flow 0;#along row
+set num_random_flow 0
 if {$num_cross_flow > [expr (int($num_col/2))*$num_row]} {
 	# puts $num_cross_flow
 	set num_random_flow  [expr $num_cross_flow - (int($num_col/2))*$num_row]
@@ -52,7 +52,7 @@ if {$num_cross_flow > [expr (int($num_col/2))*$num_row]} {
 	# set num_cross_flow $num_row
 	set num_cross_flow [expr (int($num_col/2))*$num_row]
 }
-set num_random_flow $num_flow
+# set num_random_flow $num_flow
 
 
 puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate #TX_Area=$grid_x_dim x $grid_y_dim"
@@ -60,8 +60,10 @@ puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate 
 
 
 
-set source_type			Agent/UDP
-set sink_type			Agent/Null
+# set source_type			Agent/UDP
+# set sink_type			Agent/Null
+set source_type			Agent/TCP
+set sink_type			Agent/TCPSink
 
 # ==============================================================================
 # source / sink options

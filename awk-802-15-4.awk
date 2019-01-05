@@ -68,7 +68,8 @@ BEGIN {
 	}
 
 
-	if ( strAgt == "AGT"   &&   strType == "cbr") {
+	# if ( strAgt == "AGT"   &&   strType == "cbr") {
+	if ( strAgt == "AGT"   &&   strType == "tcp") {
 		if (idPacket > idHighestPacket) idHighestPacket = idPacket;
 		if (idPacket < idLowestPacket) idLowestPacket = idPacket;
 
@@ -86,8 +87,8 @@ BEGIN {
 		if ( strEvent == "r" && idPacket >= idLowestPacket) {
 			# printVar="recv:";
 			nReceivedPackets += 1 ;		
-			# nReceivedBytes += nBytes;################
-			nReceivedBytes += (nBytes-header);################
+			nReceivedBytes += nBytes;################
+			# nReceivedBytes += (nBytes-header);################
 			rReceivedTime[ idPacket ] = rTime ;
 			rDelay[idPacket] = rReceivedTime[ idPacket] - rSentTime[ idPacket ];
 			rTotalDelay += rDelay[idPacket];
@@ -95,7 +96,8 @@ BEGIN {
 		}
 	}
 
-	if( strEvent == "D"   &&   strType == "cbr" )
+	if( strEvent == "D"   &&   strType == "tcp" )
+	# if( strEvent == "D"   &&   strType == "cbr" )
 	{
 		if(rTime>rEndTime) rEndTime=rTime;
 		nDropPackets += 1;
@@ -137,7 +139,7 @@ END {
 
 
 
-	printf( "%15.2f\n%15.5f\n%15.2f\n%15.2f\n%15.2f\n%10.2f\n%10.2f\n%10.5f\n \n", rThroughput, rAverageDelay, nSentPackets, nReceivedPackets, nDropPackets, rPacketDeliveryRatio, rPacketDropRatio,rTime) ;
+	printf( "%15.2f\n%15.5f\n%15.2f\n%15.2f\n%15.2f\n%10.2f\n%10.2f\n%10.5f\n", rThroughput, rAverageDelay, nSentPackets, nReceivedPackets, nDropPackets, rPacketDeliveryRatio, rPacketDropRatio,rTime) ;
 	# print "\n"
 	printf("%15.5f\n%15.5f\n%15.5f\n%15.5f\n%15.0f\n%15.9f\n", total_energy_consumption, avg_energy_per_bit, avg_energy_per_byte, avg_energy_per_packet, total_retransmit, rEnergyEfficeincy);
 
