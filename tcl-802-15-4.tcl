@@ -28,7 +28,7 @@ set cbr_size            16 ;	#[lindex $argv 2]; #4,8,16,32,64
 set cbr_rate            0.256Mb;#11.0Mb
 set grid_x_dim		[expr $Tx_range];# 500 ;	#[lindex $argv 1]
 set grid_y_dim  	[expr $Tx_range];#500 ;	#[lindex $argv 1]
-set time_duration    25 ;	#[lindex $argv 5] ;#50
+set time_duration    15 ;	#[lindex $argv 5] ;#50
 set start_time          1
 set extra_time          5
 set flow_start_gap   0.1

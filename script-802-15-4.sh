@@ -88,6 +88,7 @@ do
 		# ======================================================================
 		# UPDATING THE VALUES IN EACH ITERATION
 		# ======================================================================
+		l=0
 		while read val
 		do
 
@@ -159,8 +160,8 @@ do
 	echo "# of Nodes:                   $nNodesInit " >> $output_file
 	echo "# of flows:                   $nFlows " >> $output_file
 	echo "Packet size:                  $pcktRate " >> $output_file
-	echo "Speed:                        $speed " >> $output_file
-	echo "Tx area:                        $speed " >> $output_file
+	# echo "Speed:                        $speed " >> $output_file
+	echo "Tx area:                        $txRange " >> $output_file
 
 
 	echo "" >> $output_file
