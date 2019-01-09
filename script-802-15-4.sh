@@ -4,7 +4,7 @@ outputDirectory="out/"
 rm -rf outputDirectory
 rm -rf Output
 mkdir -p $outputDirectory
-iteration_float=1.0;
+iteration_float=10.0;
 under="_";
 
 
@@ -26,12 +26,12 @@ txRangeInit=40;#40
 # 40x40 grid
 
 
-defFactor=2
+defFactor=1
 
 (( nNodesDef =  $defFactor * $nNodesInit ))
 (( nFlowsDef =  $defFactor * $nFlowsInit ))
 (( pcktRateDef = $defFactor * $pcktRateInit ))
-(( txRangeDef = $defFactor * $txRangeInit ))
+(( txRangeDef = 2 * $txRangeInit ))
 
 nNodes=$nNodesDef
 nFlows=$nFlowsDef
@@ -47,16 +47,31 @@ echo '================='
 echo '=====802.15.4===='
 echo '================='
 
-echo 'Which parameter do you want to vary?'
-echo 'For # of nodes, please enter 1'
-echo 'For # of flows, please enter 2'
-echo 'For packet rate, please enter 3'
-# echo 'For speed, please enter 4'
-echo 'For area, please enter 4'
-read param
+# echo 'Which parameter do you want to vary?'
+# echo 'For # of nodes, please enter 1'
+# echo 'For # of flows, please enter 2'
+# echo 'For packet rate, please enter 3'
+# echo 'For area, please enter 4'
+# read param
+param=1
 
-echo 'Please enter the # of datasets'
-read nDataSet
+# echo 'Please enter the # of datasets'
+# read nDataSet
+nDataSet=5
+
+
+
+if [ "$param" == "1" ]; then
+	nNodes=$nNodesInit
+elif [ "$param" == "2" ]; then
+	nFlows=$nFlowsInit
+elif [ "$param" == "3" ]; then
+	pcktRate=$pcktRateInit
+elif [ "$param" == "4" ]; then
+	txRange=$txRangeInit
+fi
+
+
 
 round=1
 
@@ -88,6 +103,7 @@ do
 		# ======================================================================
 		# UPDATING THE VALUES IN EACH ITERATION
 		# ======================================================================
+		l=0
 		while read val
 		do
 
@@ -159,8 +175,8 @@ do
 	echo "# of Nodes:                   $nNodesInit " >> $output_file
 	echo "# of flows:                   $nFlows " >> $output_file
 	echo "Packet size:                  $pcktRate " >> $output_file
-	echo "Speed:                        $speed " >> $output_file
-	echo "Tx area:                        $speed " >> $output_file
+	# echo "Speed:                        $speed " >> $output_file
+	echo "Tx area:                        $txRange " >> $output_file
 
 
 	echo "" >> $output_file
@@ -182,6 +198,8 @@ do
 	echo "Average energy per packet:    $energy_packet " >> $output_file
 	echo "total_retransmit:             $total_retransmit " >> $output_file
 	echo "energy_efficiency(nj/bit):    $enr_nj " >> $output_file
+
+	cat $output_file
 	# ==========================================================================
 
 	round=$(($round+1))
