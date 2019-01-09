@@ -172,7 +172,7 @@ do
 	echo "" > $output_file # clearing the output file
 
 
-	echo "# of Nodes:                   $nNodesInit " >> $output_file
+	echo "# of Nodes:                   $nNodes " >> $output_file
 	echo "# of flows:                   $nFlows " >> $output_file
 	echo "Packet size:                  $pcktRate " >> $output_file
 	# echo "Speed:                        $speed " >> $output_file
