@@ -16,7 +16,6 @@ if {$num_node >= 50} {
 }
 set num_row [expr $num_node/$num_col]
 
-# puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate #TX_Range=$Tx_range"
 # ==============================================================================
 
 
@@ -36,15 +35,15 @@ set parallel_start_gap 0.1
 set cross_start_gap 0.0
 set random_start_gap 0.2
 
-set num_parallel_flow [expr ($num_row*$num_col)];# along column
+# set num_parallel_flow [expr ($num_row*$num_col)];# along column
+set num_parallel_flow [expr (int($num_row/2))*$num_col];# along column
 set num_parallel_flow 0;# along column
-# set num_parallel_flow [expr (int($num_row/2))*$num_col];# along column
 if {$num_parallel_flow > [expr $num_flow/2]} {
 	set num_parallel_flow [expr $num_flow/2]
 }
 set num_cross_flow [expr $num_flow-$num_parallel_flow] ;#along row
-set num_cross_flow 0;#along row
-# set num_random_flow 0
+# set num_cross_flow $num_flow;#along row
+set num_random_flow 0
 if {$num_cross_flow > [expr (int($num_col/2))*$num_row]} {
 	# puts $num_cross_flow
 	set num_random_flow  [expr $num_cross_flow - (int($num_col/2))*$num_row]
@@ -52,6 +51,8 @@ if {$num_cross_flow > [expr (int($num_col/2))*$num_row]} {
 	# set num_cross_flow $num_row
 	set num_cross_flow [expr (int($num_col/2))*$num_row]
 }
+set num_parallel_flow 0;# along column
+set num_cross_flow 0;#along row
 set num_random_flow $num_flow
 
 
@@ -162,7 +163,7 @@ set dist(25m) 3.07645e-07
 set dist(30m) 2.13643e-07
 set dist(35m) 1.56962e-07
 set dist(40m) 1.20174e-07
-Phy/WirelessPhy set CSThresh_ $dist(40m)
+Phy/WirelessPhy set CSThresh_ 2.48293e-08;#[expr 2.2*$dist(40m)]
 Phy/WirelessPhy set RXThresh_ $dist(40m)
 # Phy/WirelessPhy set TXThresh_ $dist(40m)
 # Phy/WirelessPhy/802_15_4 set CSThresh_ $dist(40m)
@@ -473,8 +474,8 @@ for {set i 0} {$i < $num_random_flow} {incr i} {
 set k [expr $num_parallel_flow+$num_cross_flow]
 # Creating packet generator (CBR) for source node
 for {set i 0} {$i < $num_random_flow } {incr i} {
-	set cbr_($i) [create_CBR_App]
-	$cbr_($i) attach-agent $udp_($k)
+	set cbr_($k) [create_CBR_App]
+	$cbr_($k) attach-agent $udp_($k)
 	incr k
 }
 
@@ -492,46 +493,6 @@ for {set i 0} {$i < $num_random_flow } {incr i} {
 	incr k
 }
 # =============================================================
-
-
-
-
-#######################################################################RANDOM FLOW
-# set r $k
-# set rt $r
-# set num_node [expr $num_row*$num_col]
-# for {set i 1} {$i < [expr $num_random_flow+1]} {incr i} {
-# 	set udp_node [expr int($num_node*rand())] ;# src node
-# 	set null_node $udp_node
-# 	while {$null_node==$udp_node} {
-# 		set null_node [expr int($num_node*rand())] ;# dest node
-# 	}
-# 	$ns_ attach-agent $node_($udp_node) $udp_($rt)
-#   	$ns_ attach-agent $node_($null_node) $null_($rt)
-# 	puts -nonewline $topofile "RANDOM:  Src: $udp_node Dest: $null_node\n"
-# 	incr rt
-# }
-
-# set rt $r
-# for {set i 1} {$i < [expr $num_random_flow+1]} {incr i} {
-# 	$ns_ connect $udp_($rt) $null_($rt)
-# 	incr rt
-# }
-# set rt $r
-# for {set i 1} {$i < [expr $num_random_flow+1]} {incr i} {
-# 	set cbr_($rt) [new Application/Traffic/CBR]
-# 	$cbr_($rt) set packetSize_ $cbr_size
-# 	$cbr_($rt) set rate_ $cbr_rate
-# 	$cbr_($rt) set interval_ $cbr_interval
-# 	$cbr_($rt) attach-agent $udp_($rt)
-# 	incr rt
-# }
-
-# set rt $r
-# for {set i 1} {$i < [expr $num_random_flow+1]} {incr i} {
-# 	$ns_ at [expr $start_time] "$cbr_($rt) start"
-# 	incr rt
-# }
 
 
 

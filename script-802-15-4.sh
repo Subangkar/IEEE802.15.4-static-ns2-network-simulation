@@ -172,9 +172,9 @@ do
 	echo "" > $output_file # clearing the output file
 
 
-	echo "# of Nodes:                   $nNodesInit " >> $output_file
+	echo "# of Nodes:                   $nNodes " >> $output_file
 	echo "# of flows:                   $nFlows " >> $output_file
-	echo "Packet size:                  $pcktRate " >> $output_file
+	echo "Packet rate:                  $pcktRate " >> $output_file
 	# echo "Speed:                        $speed " >> $output_file
 	echo "Tx area:                        $txRange " >> $output_file
 
@@ -261,7 +261,7 @@ arr2[7]="Energy per byte ( J )"
 i=7
 while [ $i -ge 2 ]
 do
-	gnuplot -persist -e "set title '802.15.4 : ${arr[i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[i]}'; plot '$graphFileName' using 1:$i with lines"
+	gnuplot -persist -e "set terminal png size 700,500; set output '$outputDirectory${arr[$i]}VS$param.png'; set title '802.15.4 : ${arr[$i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[$i]}'; plot '$graphFileName' using 1:$i with lines"
 	i=$(($i-1))
 done
 
