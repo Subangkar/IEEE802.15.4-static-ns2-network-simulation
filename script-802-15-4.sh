@@ -40,8 +40,8 @@ txRange=$txRangeDef
 
 iteration=$(printf %.0f $iteration_float);
 
-#echo 'PLease enter # of nodes, # of flows, packet rate, and node speed'
-#read nNodes nFlows pcktRate speed
+#echo 'PLease enter # of nodes, # of flows, packet rate, and coverage area'
+#read nNodes nFlows pcktRate area
 
 echo '================='
 echo '=====802.15.4===='
@@ -53,7 +53,7 @@ echo '================='
 # echo 'For packet rate, please enter 3'
 # echo 'For area, please enter 4'
 # read param
-param=1
+# param=3
 
 # echo 'Please enter the # of datasets'
 # read nDataSet
@@ -63,12 +63,16 @@ nDataSet=5
 
 if [ "$param" == "1" ]; then
 	nNodes=$nNodesInit
+	echo "Varying #Nodes"
 elif [ "$param" == "2" ]; then
 	nFlows=$nFlowsInit
+	echo "Varying #Flows"
 elif [ "$param" == "3" ]; then
 	pcktRate=$pcktRateInit
+	echo "Varying #PktRate"
 elif [ "$param" == "4" ]; then
 	txRange=$txRangeInit
+	echo "Varying Coverage"
 fi
 
 
@@ -175,7 +179,6 @@ do
 	echo "# of Nodes:                   $nNodes " >> $output_file
 	echo "# of flows:                   $nFlows " >> $output_file
 	echo "Packet rate:                  $pcktRate " >> $output_file
-	# echo "Speed:                        $speed " >> $output_file
 	echo "Tx area:                        $txRange " >> $output_file
 
 
@@ -219,9 +222,6 @@ do
 	elif [ "$param" == "4" ]; then
 		echo -ne "$txRange " >> $graphData
 		txRange=$(($txRangeInit*$round))
-	# elif [ "$param" == "4" ]; then
-	# 	echo -ne "$speed " >> $graphData
-	# 	speed=$(($speedInit*$round))
 	fi
 
 	echo "$thr $del $del_ratio $dr_ratio $t_energy $energy_byte" >> $graphData
@@ -237,7 +237,6 @@ elif [ "$param" == "3" ]; then
 	param="Packet Rate"
 elif [ "$param" == "4" ]; then
 	param="Area ( square-meter )"
-	# param="Speed ( meter/second )"
 fi
 
 arr[0]=""

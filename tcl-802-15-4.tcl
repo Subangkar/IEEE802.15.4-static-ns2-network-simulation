@@ -12,7 +12,7 @@ set cbr_interval		[expr 1.0/$cbr_pckt_rate]
 set num_col 5
 if {$num_node >= 50} {
 	set num_col [expr 2*$num_col]
-	puts "$num_col"
+	# puts "$num_col"
 }
 set num_row [expr $num_node/$num_col]
 

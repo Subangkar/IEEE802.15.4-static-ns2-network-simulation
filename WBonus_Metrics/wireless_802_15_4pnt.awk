@@ -5,7 +5,7 @@ BEGIN {
 	rTotalDelay = 0.0 ;
 	max_pckt = 10000;
 
-	header = 20;	
+	header = 0;#20;	
 
 	idHighestPacket = 0;
 	idLowestPacket = 100000;
@@ -134,14 +134,13 @@ END {
 	}
 
 
-	printf( "%15.2f\n%15.5f\n%15.2f\n%15.2f\n%15.2f\n%10.2f\n%10.2f\n%10.5f\n", rThroughput, rAverageDelay, nSentPackets, nReceivedPackets, nDropPackets, rPacketDeliveryRatio, rPacketDropRatio,rTime) ;
-	printf("%15.5f\n%15.5f\n%15.5f\n%15.5f\n%15.0f\n%15.9f\n%12.9f\n", total_energy_consumption, avg_energy_per_bit, avg_energy_per_byte, avg_energy_per_packet, total_retransmit, rEnergyEfficeincy, jitter);
+	
 
 	for(i=0; i<max_node;i++) {
 		nThroughput[i]=nThroughput[i]*8/rTime;
 		if(nThroughput[i] != 0.0)
 		{
-#			
+			printf("%d\t%f\n",i,nThroughput[i]);			
 		}
 	}
 }

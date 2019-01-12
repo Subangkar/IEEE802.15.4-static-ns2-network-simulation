@@ -78,7 +78,7 @@ set val(ifq) Queue/DropTail/PriQueue ;# interface queue type
 set val(ll) LL ;# link layer type
 set val(ant) Antenna/OmniAntenna ;# antenna model
 set val(ifqlen) 100 ;# max packet in ifq
-set val(rp) DSDV ;# routing protocol
+set val(rp) AODV ;# routing protocol
 
 Mac/802_15_4 set syncFlag_ 1
 Mac/802_15_4 set dataRate_ 11Mb
